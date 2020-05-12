@@ -1,4 +1,4 @@
-import configparser
+#import configparser
 from datetime import datetime
 import os
 from pyspark.sql import SparkSession
@@ -6,12 +6,12 @@ from pyspark.sql.functions import udf, col, monotonically_increasing_id
 from pyspark.sql.functions import year, month, dayofmonth, hour, weekofyear, date_format
 from pyspark.sql.types import StructType, StructField, DoubleType, StringType, IntegerType, DateType
 
-config = configparser.ConfigParser()
-config.read('dl.cfg')
+#config = configparser.ConfigParser()
+#config.read('dl.cfg')
 
 # Not necessary while running directly on EMR.
-os.environ['AWS_ACCESS_KEY_ID']=config.get('IAM_USER', 'AWS_ACCESS_KEY_ID')
-os.environ['AWS_SECRET_ACCESS_KEY']=config.get('IAM_USER', 'AWS_SECRET_ACCESS_KEY')
+#os.environ['AWS_ACCESS_KEY_ID']=config.get('IAM_USER', 'AWS_ACCESS_KEY_ID')
+#os.environ['AWS_SECRET_ACCESS_KEY']=config.get('IAM_USER', 'AWS_SECRET_ACCESS_KEY')
 
 def create_spark_session():
     """ Creates a spark session, which it returns. config not necessary while running
@@ -19,7 +19,7 @@ def create_spark_session():
     spark = SparkSession \
         .builder \
         .appName('Sparkify ETL') \
-        #.config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:2.7.0") \
+        .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:2.7.0") \
         .getOrCreate()
     return spark
 
@@ -73,7 +73,7 @@ def process_song_data(spark, input_data, output_data):
     
     # write artists table to parquet files
     #artists_table
-    artists_data.write.parquet('{}artists/'.format(output_data))
+    artists_table.write.parquet('{}artists/'.format(output_data))
     print('Wrote artists to parquet')
 
 def process_log_data(spark, input_data, output_data):
