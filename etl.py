@@ -4,7 +4,7 @@ import os
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf, col, monotonically_increasing_id
 from pyspark.sql.functions import year, month, dayofmonth, hour, weekofyear, date_format
-from pyspark.sql.types import StructType, StructField, DoubleType, StringType, IntegerType, DateType
+from pyspark.sql.types import StructType, StructField, DoubleType, StringType, IntegerType, DateType, TimestampType
 
 #config = configparser.ConfigParser()
 #config.read('dl.cfg')
@@ -114,7 +114,7 @@ def process_log_data(spark, input_data, output_data):
                  )
     
     # write time table to parquet files partitioned by year and month
-    time_table.write.partitionBy('year', 'month').parquet('parquet/time/')
+    time_table.write.partitionBy('year', 'month').parquet('{}time/'.format(output_data))
     print("Wrote time table to parquet")
 
     # read in song data to use for songplays table
