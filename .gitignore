@@ -1,6 +1,8 @@
 cfg files
 *.cfg
 *.ini
+*.pem
+*.ppk
 
 led / optimized / DLL files
 __pycache__/
