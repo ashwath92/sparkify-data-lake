@@ -1,3 +1,17 @@
+""" 
+#-------------------------------------------------------------------------------
+# Name:        Data Lake using Spark ETL
+# Purpose:     ETL script to take song and log data from an S3 bucket, process it in Apache Spark,
+#              and move then load it into a Data Lake in a new S3 bucket. 
+#
+# Author:      Ashwath Sampath
+#
+# Created:     10-May-2020
+# Copyright:   (c) Ashwath Sampath 2020
+#-------------------------------------------------------------------------------
+
+"""
+
 #import configparser
 from datetime import datetime
 import os
@@ -15,7 +29,14 @@ from pyspark.sql.types import StructType, StructField, DoubleType, StringType, I
 
 def create_spark_session():
     """ Creates a spark session, which it returns. config not necessary while running
-    directly on EMR."""
+    directly on EMR.
+    
+    ARGUMENTS:
+        None
+        
+    RETURNS:
+        spark (SparkSession): a SparkSession object
+        """
     spark = SparkSession \
         .builder \
         .appName('Sparkify ETL') \
@@ -25,7 +46,14 @@ def create_spark_session():
 
 def create_spark_context(spark):
     """ Creates a Spark context object in the current Spark Session and
-    sets the AWS keys."""
+    sets the AWS keys.
+    
+    ARGUMENTS:
+        spark (SparkSession): the current SparkSession object
+        
+    RETURNS:
+        sc (sparkContext): a Spark context object
+    """
     sc = spark.sparkContext
     sc._jsc.hadoopConfiguration().set("mapreduce.fileoutputcommitter.algorithm.version", "2")
     #sc._jsc.hadoopConfiguration().set("fs.s3n.awsAccessKeyId", os.environ['AWS_ACCESS_KEY_ID'])
@@ -33,6 +61,21 @@ def create_spark_context(spark):
     return sc
 
 def process_song_data(spark, input_data, output_data):
+    """ Processes the song data present in multiple nested subdirectories of 
+    the S3 bucket directory input_data using spark, and writes the results to
+    two dimension tables (artists and songs) inside the S3 bucket path output_data.
+    
+    NOTE: The input data is partitioned by the first three letters of the song_id,
+    i.e., there are four levels of nesting under the input_data directory in S3.
+    
+    ARGUMENTS: 
+        spark (SparkSession): a spark session
+        input_data (string): the input S3 directory path
+        output_data (string): the output S3 directory path
+        
+    RETURNS:
+        None
+    """
     # get filepath to song data file
     song_data = os.path.join(input_data, 'song_data', '*', '*', '*', '*.json')
     # read song data file
@@ -77,7 +120,23 @@ def process_song_data(spark, input_data, output_data):
     print('Wrote artists to parquet')
 
 def process_log_data(spark, input_data, output_data):
-    # get filepath to log data file
+    """ Processes the log data present in multiple nested subdirectories of 
+    the S3 bucket directory input_data using spark, and writes the results into
+    two dimension tables (users and time) and one fact table (songplays) 
+    inside the S3 bucket path output_data.
+    
+    NOTE: The input data is partitioned by year and month, i.e., there are
+    three levels of nesting under the input_data directory in S3.
+    
+    ARGUMENTS: 
+        spark (SparkSession): a spark session
+        input_data (string): the input S3 directory path
+        output_data (string): the output S3 directory path
+        
+    RETURNS:
+        None
+    """
+    # get filepath to log data file: partitioned by year and month
     log_data = os.path.join(input_data, 'log_data', '*', '*', '*.json')
 
     # read log data file
@@ -89,7 +148,7 @@ def process_log_data(spark, input_data, output_data):
     # extract columns for users table    
     users_columns = ['userId as user_id', 'firstName as first_name', 'lastName as last_name',
                      'gender', 'level']
-    users_table = df.selectExpr(users_columns)
+    users_table = df.selectExpr(users_columns).dropDuplicates()
 
     # write users table to parquet files
     users_table.write.parquet('{}users/'.format(output_data))
@@ -98,7 +157,7 @@ def process_log_data(spark, input_data, output_data):
     get_timestamp = udf(lambda x: datetime.fromtimestamp(x/1000), TimestampType())
     df = df.withColumn('start_time', get_timestamp('ts'))
     
-    # create datetime column from original timestamp column
+    # create datetime column from original timestamp column: not necessary
     #get_datetime = udf()
     #df = 
     
@@ -153,6 +212,7 @@ def process_log_data(spark, input_data, output_data):
     print("Wrote songplays to parquet")
 
 def main():
+    """ Main function """
     spark = create_spark_session()
     sc = create_spark_context(spark)
     input_data = "s3a://udacity-dend/"
