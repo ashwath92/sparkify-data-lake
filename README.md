@@ -11,7 +11,7 @@ The purpose of this project is to perform ETL to insert song and log data from a
 * Pyspark 2.4.3 +
 * Jupyter/Ipython
 
-### Description of Data Sets:
+### Description of Data Sets
 
 #### Song Dataset
 
@@ -36,7 +36,7 @@ The log data set has the following columns:
 'artist',  'auth',  'firstName',  'gender',  'itemInSession',  'lastName',  'length',  'level',  'location',  'method',  'page',  'registration',  'sessionId',  'song',  'status',  'ts',  'userAgent',  'userId'
 
 ### Description of Data Model:
-We import data into Spark from the log and song files which are stored in Amazon S3. This data, after processing in Spark, is written out to a bunch of partitioned Parquet files (one set of Parquet files for each of the tables) in S3. Let's now take a look at the tables.
+We import data into Spark from the log and song files which are stored in Amazon S3. This data, after processing in Spark, is written out to a bunch of partitioned Parquet files (one set of Parquet files for each of the tables) in S3. These tables form a star schema -- there is one central fact table surrounded by four dimension tables. These tables are described below.
 
 #### Dimension tables
 1. songs: contains information about songs. This is fetched from the song data. Columns: song_id, title, artist_id, year, duration.
